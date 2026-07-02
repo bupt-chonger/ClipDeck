@@ -29,13 +29,14 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private func makeWindow() -> NSWindow {
         let hostingView = NSHostingView(rootView: SettingsView(environment: environment))
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 420),
-            styleMask: [.titled, .closable],
+            contentRect: NSRect(x: 0, y: 0, width: 800, height: 540),
+            styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.title = AppStrings(AppLanguagePreferenceStore().load()).settingsWindowTitle
         window.contentView = hostingView
+        window.minSize = NSSize(width: 760, height: 500)
         window.isReleasedWhenClosed = false
         window.level = .floating
         window.delegate = self
