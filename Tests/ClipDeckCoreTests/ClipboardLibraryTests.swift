@@ -123,6 +123,20 @@ struct ClipboardLibraryTests {
         #expect(results.map(\.content) == ["func pasteLatest() {}"])
     }
 
+    @Test("shelf items include every matching item by default")
+    func shelfItemsIncludeEveryMatchingItemByDefault() {
+        let items = (0..<14).map { index in
+            ClipItem(
+                content: "Clip \(index)",
+                source: "Notes",
+                updatedAt: Date(timeIntervalSince1970: TimeInterval(index))
+            )
+        }
+        let library = ClipboardLibrary(seed: items)
+
+        #expect(library.shelfItems(query: "").count == 14)
+    }
+
     @Test("removing app records matches bundle identifier before source name")
     func removeAppRecordsMatchesBundleBeforeSource() {
         let library = ClipboardLibrary(seed: [

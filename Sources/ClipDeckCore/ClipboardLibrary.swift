@@ -201,12 +201,16 @@ public final class ClipboardLibrary {
         }
     }
 
-    public func shelfItems(query: String, board: Pinboard = .all, limit: Int = 10) -> [ClipItem] {
-        Array(filteredItems(query: query, board: board).prefix(max(0, limit)))
+    public func shelfItems(query: String, board: Pinboard = .all, limit: Int? = nil) -> [ClipItem] {
+        let results = filteredItems(query: query, board: board)
+        guard let limit else { return results }
+        return Array(results.prefix(max(0, limit)))
     }
 
-    public func shelfItems(query: String, filter: ClipboardFilter, limit: Int = 10) -> [ClipItem] {
-        Array(filteredItems(query: query, filter: filter).prefix(max(0, limit)))
+    public func shelfItems(query: String, filter: ClipboardFilter, limit: Int? = nil) -> [ClipItem] {
+        let results = filteredItems(query: query, filter: filter)
+        guard let limit else { return results }
+        return Array(results.prefix(max(0, limit)))
     }
 
     public func count(for board: Pinboard) -> Int {
