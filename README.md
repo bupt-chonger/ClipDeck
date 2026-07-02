@@ -1,87 +1,89 @@
 # ClipDeck
 
-ClipDeck 是一个面向 macOS 的剪贴板工具。它以贴合屏幕底部的浮层面板呈现剪贴板历史，支持文本、图片、搜索、预览、快捷键呼出和自定义 Pinboard 归类。
+English | [中文简体](README.zh-CN.md)
 
-项目使用 SwiftUI 和 AppKit 构建，界面参考 macOS 的 Liquid Glass 视觉方向：轻量、透明、低干扰，适合在日常复制、整理和粘贴流程中快速调用。
+ClipDeck is a macOS clipboard shelf for collecting, searching, previewing, and organizing copied text and images with custom pinboards.
 
-## 功能特性
+It is built with SwiftUI and AppKit, runs as a bottom-attached floating panel, and is designed around a translucent Liquid Glass-style interface.
 
-- 全局快捷键呼出或隐藏底部剪贴板面板
-- 自动保存文本和图片剪贴板历史
-- 图片预览，以及图片剪贴板内容的复制/粘贴恢复
-- 根据内容、类型、来源 App、Pinboard 名称搜索条目
-- 自定义 Pinboard，支持颜色、重命名、删除和条目归类
-- 键盘左右方向键切换选中条目
-- `Delete` / `Backspace` 删除选中条目
-- `Command-C` 复制选中条目
-- 再次点击或双击条目可粘贴到之前聚焦的 App
-- 支持删除全部历史记录，或删除指定来源 App 的记录
-- 本地存储，不上传剪贴板内容
+## Features
 
-## 隐私过滤
+- Global shortcut to show or hide the clipboard shelf
+- Clipboard history for text and images
+- Image preview and image pasteboard restore
+- Search by clip content, type, source app, or group name
+- Custom groups with colors, rename, delete, and clip assignment
+- Keyboard navigation with left and right arrow keys
+- Delete selected clips with `Delete` or `Backspace`
+- Copy selected clips with `Command-C`
+- Paste selected clips directly back into the previously focused app
+- Delete all records, or remove records from a specific source app
+- Local-only persistence
 
-ClipDeck 提供可配置的隐私过滤能力，用来减少敏感内容进入本地历史记录的概率：
+## Privacy Filters
 
-- 忽略常见密码管理器来源，例如 1Password、Bitwarden、Dashlane、LastPass、KeePass 等
-- 忽略浏览器隐身/私密窗口来源，例如 Private Browsing、Incognito、InPrivate、隐身、无痕、私密浏览等窗口标题
-- 忽略常见敏感文本，例如验证码、私钥、API key、access token、refresh token、client secret 等
-- 支持将某个来源 App 加入自定义忽略列表，也可以从设置中移除
+ClipDeck includes configurable privacy filters to reduce the chance of sensitive content being saved into local history:
 
-需要注意：图片内容无法可靠识别是否包含验证码、密钥或敏感文档，因此图片目前只按来源 App 和隐身窗口进行过滤。
+- Ignore common password managers, such as 1Password, Bitwarden, Dashlane, LastPass, and KeePass
+- Ignore private browser windows, such as Private Browsing, Incognito, InPrivate, or Chinese private browsing markers
+- Ignore common sensitive text, such as verification codes, private keys, API keys, access tokens, refresh tokens, and client secrets
+- Add source apps to a custom ignored-app list, and remove them later from settings
 
-## 使用方式
+Note: image contents cannot be inspected reliably for codes, keys, or confidential documents. Images are filtered by source app and private browsing state only.
 
-启动后，ClipDeck 会作为后台辅助类应用运行，并显示底部剪贴板面板。默认快捷键为：
+## Usage
+
+After launch, ClipDeck runs as a background utility and shows the bottom clipboard shelf. The default shortcut is:
 
 ```text
 Option Space
 ```
 
-在剪贴板面板中可以直接输入进行搜索，也可以点击搜索图标展开或折叠搜索框。选中条目后，可以使用快捷键复制、删除，或通过鼠标点击完成粘贴。
+You can type directly in the shelf to search, or click the search icon to expand or collapse the search field. Select a clip, then copy, delete, or paste it using the keyboard or mouse.
 
-## 构建和运行
+## Build And Run
 
-环境要求：
+Requirements:
 
-- macOS 14 或更高版本
-- Swift 6 工具链
+- macOS 14 or later
+- Swift 6 toolchain
 
-运行测试：
+Run tests:
 
 ```bash
 swift test
 ```
 
-构建并启动应用：
+Build and launch the app:
 
 ```bash
 ./script/build_and_run.sh
 ```
 
-只验证应用能否构建和启动：
+Build and verify that the app launches:
 
 ```bash
 ./script/build_and_run.sh --verify
 ```
 
-## 辅助功能权限
+## Accessibility Permission
 
-ClipDeck 可能会请求 macOS 辅助功能权限。该权限用于在选择剪贴板条目后，将焦点恢复到之前的应用，并发送粘贴快捷键，从而实现“直接粘贴到当前位置”。
+ClipDeck may request macOS Accessibility permission. This permission is used to restore focus to the previously active app and send the paste shortcut after you choose a clip, enabling direct paste into the current insertion point.
 
-剪贴板采集、本地历史记录和搜索不依赖网络访问。
+Clipboard collection, local history, and search do not require network access.
 
-## 数据存储
+## Data Storage
 
-ClipDeck 将历史记录保存在当前用户的 Application Support 目录中，通过 `LibrarySnapshotStore` 读写本地 JSON 快照。
+ClipDeck stores clipboard history in the current user's Application Support directory through `LibrarySnapshotStore`, using a local JSON snapshot.
 
-如果你经常复制密码、密钥、验证码、个人信息、截图或公司内部资料，建议开启隐私过滤，并定期清理历史记录。
+If you frequently copy passwords, keys, verification codes, personal information, screenshots, or confidential documents, enable privacy filters and clear history regularly.
 
-## 开源说明
+## Open Source Notice
 
-ClipDeck 的交互和组织方式参考了现代剪贴板 shelf 工作流，以及 Pinboard 风格的信息整理方式。
+ClipDeck is inspired by modern clipboard shelf workflows and pinboard-style organization patterns.
 
-本项目是独立开源项目，与 Paste 或 pasteapp.io 没有关联、授权、赞助或背书关系。Paste 和 pasteapp.io 是其各自权利人的商标或资产。
+This project is independent and is not affiliated with, endorsed by, sponsored by, or authorized by Paste or pasteapp.io. Paste and pasteapp.io are trademarks or properties of their respective owners.
 
 ## License
 
-ClipDeck 使用 MIT License 开源，详见 [LICENSE](LICENSE)。
+ClipDeck is released under the MIT License. See [LICENSE](LICENSE).
