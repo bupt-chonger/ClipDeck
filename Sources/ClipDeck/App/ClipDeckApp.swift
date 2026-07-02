@@ -20,6 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var floatingController: FloatingClipboardController?
     private var hotKeyMonitor: GlobalHotKeyMonitor?
     private var policyStore: ClipboardCapturePolicyStore?
+    private var retentionStore: ClipboardRetentionPreferenceStore?
     private var settingsWindowController: SettingsWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -42,8 +43,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let policyStore = ClipboardCapturePolicyStore()
         self.policyStore = policyStore
+        let retentionStore = ClipboardRetentionPreferenceStore()
+        self.retentionStore = retentionStore
 
-        let poller = ClipboardPoller(library: library, store: store, policyStore: policyStore)
+        let poller = ClipboardPoller(library: library, store: store, policyStore: policyStore, retentionStore: retentionStore)
         self.poller = poller
         poller.start()
 
@@ -65,6 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             store: store,
             hotKeyMonitor: hotKeyMonitor,
             policyStore: policyStore,
+            retentionStore: retentionStore,
             settingsWindowController: settingsWindowController
         )
 

@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Bindable var environment: ClipDeckEnvironment
     @AppStorage(HotKeyPreferenceStore.defaultsKey) private var hotKeyRawValue = KeyboardShortcutPreference.default.rawValue
     @AppStorage(AppLanguagePreferenceStore.defaultsKey) private var languageRawValue = AppLanguagePreferenceStore().load().rawValue
+    @AppStorage(ClipboardRetentionPreferenceStore.maxItemsKey) private var retentionMaxItems = 0
     @State private var policy: ClipboardCapturePolicy = .default
     @State private var isRecordingShortcut = false
     @State private var isConfirmingDelete = false
@@ -22,6 +23,10 @@ struct SettingsView: View {
 
     private var shortcut: KeyboardShortcutPreference {
         KeyboardShortcutPreference(rawValue: hotKeyRawValue) ?? .default
+    }
+
+    private var retentionPreference: ClipboardRetentionPreference {
+        retentionMaxItems > 0 ? .limited(retentionMaxItems) : .unlimited
     }
 
     private var canIgnoreTargetApp: Bool {
@@ -193,6 +198,22 @@ struct SettingsView: View {
 
     private var recordsSection: some View {
         Section(strings.clipboardRecordsSection) {
+            Picker(strings.maximumSavedItems, selection: $retentionMaxItems) {
+                Text(strings.unlimited)
+                    .tag(0)
+                ForEach([100, 500, 1000, 2000], id: \.self) { value in
+                    Text("\(value)")
+                        .tag(value)
+                }
+            }
+            .onChange(of: retentionMaxItems) { _, _ in
+                environment.saveRetentionPreference(retentionPreference)
+            }
+
+            Text(strings.retentionLimitDescription)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
             VStack(alignment: .leading, spacing: 8) {
                 Text(strings.allRecords)
                     .font(.headline)

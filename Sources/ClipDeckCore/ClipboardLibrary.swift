@@ -175,6 +175,16 @@ public final class ClipboardLibrary {
     }
 
     @discardableResult
+    public func trimToMostRecent(maxItems: Int) -> Int {
+        guard maxItems >= 0 else { return 0 }
+        sort()
+        guard items.count > maxItems else { return 0 }
+        let previousCount = items.count
+        items = Array(items.prefix(maxItems))
+        return previousCount - items.count
+    }
+
+    @discardableResult
     public func removeAppRecords(source: String, sourceBundleIdentifier: String?) -> Int {
         let previousCount = items.count
         if let sourceBundleIdentifier, !sourceBundleIdentifier.isEmpty {

@@ -166,6 +166,20 @@ struct ClipboardLibraryTests {
         #expect(library.items.isEmpty)
     }
 
+    @Test("trimming keeps the most recently used items")
+    func trimmingKeepsMostRecentlyUsedItems() {
+        let library = ClipboardLibrary(seed: [
+            ClipItem(content: "Old", updatedAt: Date(timeIntervalSince1970: 100)),
+            ClipItem(content: "Newest", updatedAt: Date(timeIntervalSince1970: 300)),
+            ClipItem(content: "Middle", updatedAt: Date(timeIntervalSince1970: 200))
+        ])
+
+        let removed = library.trimToMostRecent(maxItems: 2)
+
+        #expect(removed == 1)
+        #expect(library.items.map(\.content) == ["Newest", "Middle"])
+    }
+
     @Test("saving to a pinboard makes pinboard names searchable")
     func savingToPinboardMakesPinboardNamesSearchable() throws {
         let item = ClipItem(content: "Quarterly plan", source: "Notes")

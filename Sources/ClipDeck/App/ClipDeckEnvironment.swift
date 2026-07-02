@@ -11,6 +11,7 @@ final class ClipDeckEnvironment {
     var store: LibrarySnapshotStore?
     var hotKeyMonitor: GlobalHotKeyMonitor?
     var policyStore: ClipboardCapturePolicyStore?
+    var retentionStore: ClipboardRetentionPreferenceStore?
     var settingsWindowController: SettingsWindowController?
     var settingsTargetSource: String?
     var settingsTargetBundleIdentifier: String?
@@ -26,12 +27,14 @@ final class ClipDeckEnvironment {
         store: LibrarySnapshotStore,
         hotKeyMonitor: GlobalHotKeyMonitor,
         policyStore: ClipboardCapturePolicyStore,
+        retentionStore: ClipboardRetentionPreferenceStore,
         settingsWindowController: SettingsWindowController
     ) {
         self.library = library
         self.store = store
         self.hotKeyMonitor = hotKeyMonitor
         self.policyStore = policyStore
+        self.retentionStore = retentionStore
         self.settingsWindowController = settingsWindowController
     }
 
@@ -59,6 +62,18 @@ final class ClipDeckEnvironment {
 
     func saveCapturePolicy(_ policy: ClipboardCapturePolicy) {
         policyStore?.save(policy)
+    }
+
+    func loadRetentionPreference() -> ClipboardRetentionPreference {
+        retentionStore?.load() ?? .unlimited
+    }
+
+    func saveRetentionPreference(_ preference: ClipboardRetentionPreference) {
+        retentionStore?.save(preference)
+        if let maxItems = preference.maxItems, let library {
+            library.trimToMostRecent(maxItems: maxItems)
+            store?.save(library)
+        }
     }
 
     func ignoreSettingsTargetApp() -> ClipboardCapturePolicy {

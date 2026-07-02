@@ -9,15 +9,18 @@ final class ClipboardPoller {
     private let library: ClipboardLibrary
     private let store: LibrarySnapshotStore
     private let policyStore: ClipboardCapturePolicyStore
+    private let retentionStore: ClipboardRetentionPreferenceStore
 
     init(
         library: ClipboardLibrary,
         store: LibrarySnapshotStore,
-        policyStore: ClipboardCapturePolicyStore = ClipboardCapturePolicyStore()
+        policyStore: ClipboardCapturePolicyStore = ClipboardCapturePolicyStore(),
+        retentionStore: ClipboardRetentionPreferenceStore = ClipboardRetentionPreferenceStore()
     ) {
         self.library = library
         self.store = store
         self.policyStore = policyStore
+        self.retentionStore = retentionStore
     }
 
     func start() {
@@ -52,6 +55,7 @@ final class ClipboardPoller {
                 source: sourceApp.name,
                 sourceBundleIdentifier: sourceApp.bundleIdentifier
             )
+            trimLibraryToRetentionLimit()
             store.save(library)
             return
         }
@@ -63,8 +67,14 @@ final class ClipboardPoller {
                 source: sourceApp.name,
                 sourceBundleIdentifier: sourceApp.bundleIdentifier
             )
+            trimLibraryToRetentionLimit()
             store.save(library)
         }
+    }
+
+    private func trimLibraryToRetentionLimit() {
+        guard let maxItems = retentionStore.load().maxItems else { return }
+        library.trimToMostRecent(maxItems: maxItems)
     }
 
     private func currentSourceApp() -> ClipboardSourceApp {

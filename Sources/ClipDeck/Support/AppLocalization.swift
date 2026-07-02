@@ -27,6 +27,9 @@ struct AppStrings {
     var removeFromIgnoredApps: String { text(en: "Remove from ignored apps", zh: "从忽略列表移除") }
     var clipboardRecordsSection: String { text(en: "Clipboard Records", zh: "剪贴板记录") }
     var allRecords: String { text(en: "All records", zh: "全部记录") }
+    var maximumSavedItems: String { text(en: "Maximum saved items", zh: "最多保存条目") }
+    var unlimited: String { text(en: "Unlimited", zh: "不限制") }
+    var retentionLimitDescription: String { text(en: "When new clips are captured, ClipDeck keeps the most recently used items and removes older records beyond this limit.", zh: "获取新剪贴板条目时，ClipDeck 会保留最近使用的条目，并删除超出上限的旧记录。") }
     var deleteAllDescription: String { text(en: "Delete all clipboard history saved by ClipDeck.", zh: "删除 ClipDeck 保存的全部剪贴板历史。") }
     var deleteAllRecords: String { text(en: "Delete All Records", zh: "删除全部记录") }
     var deleteAllRecordsQuestion: String { text(en: "Delete all records?", zh: "删除全部记录？") }
