@@ -51,6 +51,14 @@ struct FloatingClipboardView: View {
         )
     }
 
+    private var pinboardAssignmentAnimation: Animation {
+        .interactiveSpring(
+            response: ShelfCardInteractionAnimationStyle.pinboardAssignmentResponse,
+            dampingFraction: ShelfCardInteractionAnimationStyle.pinboardAssignmentDampingFraction,
+            blendDuration: ShelfCardInteractionAnimationStyle.pinboardAssignmentBlendDuration
+        )
+    }
+
     var body: some View {
         GeometryReader { proxy in
             shelfContent
@@ -470,7 +478,7 @@ struct FloatingClipboardView: View {
     private func scrollToSelectedItem(_ itemID: ClipItem.ID?, using proxy: ScrollViewProxy) {
         guard let itemID else { return }
         DispatchQueue.main.async {
-            withAnimation(.easeOut(duration: 0.18)) {
+            withAnimation(.easeOut(duration: ShelfCardInteractionAnimationStyle.scrollDuration)) {
                 proxy.scrollTo(itemID, anchor: .center)
             }
         }
@@ -600,11 +608,13 @@ struct FloatingClipboardView: View {
             focusPinboardNameField()
             return
         }
-        if let itemID = pendingPinboardItemID, let item = library.items.first(where: { $0.id == itemID }) {
-            library.save(item, toPinboard: pinboard.id)
-            selectedItemID = item.id
+        withAnimation(pinboardAssignmentAnimation) {
+            if let itemID = pendingPinboardItemID, let item = library.items.first(where: { $0.id == itemID }) {
+                library.save(item, toPinboard: pinboard.id)
+                selectedItemID = item.id
+            }
+            selectedFilter = .pinboard(pinboard.id)
         }
-        selectedFilter = .pinboard(pinboard.id)
         store.save(library)
         cancelPinboardEditor(refocusSearch: true)
     }
@@ -623,9 +633,11 @@ struct FloatingClipboardView: View {
     }
 
     private func save(_ item: ClipItem, to pinboard: UserPinboard) {
-        library.save(item, toPinboard: pinboard.id)
+        withAnimation(pinboardAssignmentAnimation) {
+            library.save(item, toPinboard: pinboard.id)
+            selectedItemID = item.id
+        }
         store.save(library)
-        selectedItemID = item.id
         focusSearchField()
     }
 
@@ -843,7 +855,14 @@ private struct ShelfClipCard: View {
         }
         .shadow(color: .black.opacity(isSelected ? ShelfGlassStyle.selectedCardShadowOpacity : ShelfGlassStyle.cardShadowOpacity), radius: isSelected ? 22 : 14, y: isSelected ? 10 : 6)
         .scaleEffect(isSelected ? 1.025 : 1)
-        .animation(.spring(response: 0.24, dampingFraction: 0.82), value: isSelected)
+        .animation(
+            .interactiveSpring(
+                response: ShelfCardInteractionAnimationStyle.selectionResponse,
+                dampingFraction: ShelfCardInteractionAnimationStyle.selectionDampingFraction,
+                blendDuration: ShelfCardInteractionAnimationStyle.selectionBlendDuration
+            ),
+            value: isSelected
+        )
         .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .onTapGesture(count: 2) {
             paste()

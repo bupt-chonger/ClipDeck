@@ -17,11 +17,21 @@ public enum ShelfGlassStyle {
 }
 
 public enum ShelfToolbarAnimationStyle {
-    public static let response: Double = 0.42
-    public static let dampingFraction: Double = 0.93
-    public static let blendDuration: Double = 0.12
+    public static let response: Double = 0.56
+    public static let dampingFraction: Double = 0.95
+    public static let blendDuration: Double = 0.16
     public static let collapsedScale: CGFloat = 0.96
     public static let collapsedOpacity: Double = 0
     public static let unselectedFilterScale: CGFloat = 0.98
-    public static let contentSwitchOffset: CGFloat = 10
+    public static let contentSwitchOffset: CGFloat = 8
+}
+
+public enum ShelfCardInteractionAnimationStyle {
+    public static let selectionResponse: Double = 0.44
+    public static let selectionDampingFraction: Double = 0.90
+    public static let selectionBlendDuration: Double = 0.14
+    public static let pinboardAssignmentResponse: Double = 0.58
+    public static let pinboardAssignmentDampingFraction: Double = 0.94
+    public static let pinboardAssignmentBlendDuration: Double = 0.16
+    public static let scrollDuration: Double = 0.36
 }

@@ -268,13 +268,24 @@ struct ClipboardLibraryTests {
 
     @Test("toolbar glass expansion uses a gentle morph animation")
     func toolbarGlassExpansionUsesGentleMorphAnimation() {
-        #expect(ShelfToolbarAnimationStyle.response >= 0.38)
-        #expect(ShelfToolbarAnimationStyle.dampingFraction >= 0.90)
-        #expect(ShelfToolbarAnimationStyle.blendDuration >= 0.10)
+        #expect(ShelfToolbarAnimationStyle.response >= 0.52)
+        #expect(ShelfToolbarAnimationStyle.dampingFraction >= 0.94)
+        #expect(ShelfToolbarAnimationStyle.blendDuration >= 0.14)
         #expect(ShelfToolbarAnimationStyle.collapsedScale < 1)
         #expect(ShelfToolbarAnimationStyle.collapsedOpacity == 0)
         #expect(ShelfToolbarAnimationStyle.unselectedFilterScale < 1)
         #expect(ShelfToolbarAnimationStyle.contentSwitchOffset > 0)
+    }
+
+    @Test("shelf card interactions use liquid glass paced animations")
+    func shelfCardInteractionsUseLiquidGlassPacedAnimations() {
+        #expect(ShelfCardInteractionAnimationStyle.selectionResponse >= 0.40)
+        #expect(ShelfCardInteractionAnimationStyle.selectionDampingFraction >= 0.88)
+        #expect(ShelfCardInteractionAnimationStyle.selectionBlendDuration >= 0.12)
+        #expect(ShelfCardInteractionAnimationStyle.pinboardAssignmentResponse >= 0.54)
+        #expect(ShelfCardInteractionAnimationStyle.pinboardAssignmentDampingFraction >= 0.92)
+        #expect(ShelfCardInteractionAnimationStyle.pinboardAssignmentBlendDuration >= 0.14)
+        #expect(ShelfCardInteractionAnimationStyle.scrollDuration >= 0.32)
     }
 
     @Test("hide completions queued while hiding run after hide finishes")
