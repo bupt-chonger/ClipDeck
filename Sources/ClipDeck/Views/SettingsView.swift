@@ -35,7 +35,28 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
+        HStack(spacing: 0) {
+            sidebar
+
+            Divider()
+
+            settingsDetail(for: selectedSection ?? .general)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .frame(minWidth: 760, idealWidth: 800, minHeight: 500, idealHeight: 540)
+        .background(.ultraThinMaterial)
+        .onAppear {
+            policy = environment.loadCapturePolicy()
+        }
+    }
+
+    private var sidebar: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(strings.settings)
+                .font(.largeTitle.weight(.semibold))
+                .padding(.horizontal, 20)
+                .padding(.top, 22)
+
             List(selection: $selectedSection) {
                 ForEach(SettingsSection.allCases) { section in
                     Label {
@@ -48,15 +69,10 @@ struct SettingsView: View {
                 }
             }
             .listStyle(.sidebar)
-            .navigationSplitViewColumnWidth(min: 190, ideal: 210, max: 250)
-        } detail: {
-            settingsDetail(for: selectedSection ?? .general)
+            .scrollContentBackground(.hidden)
         }
-        .navigationSplitViewStyle(.balanced)
-        .frame(minWidth: 760, idealWidth: 800, minHeight: 500, idealHeight: 540)
-        .onAppear {
-            policy = environment.loadCapturePolicy()
-        }
+        .frame(width: 220)
+        .background(.regularMaterial)
     }
 
     @ViewBuilder
