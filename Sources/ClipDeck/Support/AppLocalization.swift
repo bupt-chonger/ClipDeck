@@ -116,6 +116,7 @@ struct AppStrings {
         switch kind {
         case .text: text(en: "Text", zh: "文本")
         case .link: text(en: "Link", zh: "链接")
+        case .file: text(en: "File", zh: "文件")
         case .image: text(en: "Image", zh: "图片")
         case .code: text(en: "Code", zh: "代码")
         case .color: text(en: "Color", zh: "颜色")

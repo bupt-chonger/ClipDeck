@@ -19,6 +19,24 @@ struct ClipboardLibraryTests {
         #expect(library.items[0].updatedAt == Date(timeIntervalSince1970: 200))
     }
 
+    @Test("captured text keeps its original pasteboard representations")
+    func capturedTextKeepsPasteboardRepresentations() {
+        let representations = [
+            "public.utf8-plain-text": Data("Launch plan".utf8),
+            "public.html": Data("<strong>Launch plan</strong>".utf8)
+        ]
+        let library = ClipboardLibrary()
+
+        library.capture(
+            text: "Launch plan",
+            source: "Notes",
+            kind: .text,
+            pasteboardRepresentations: representations
+        )
+
+        #expect(library.items.first?.pasteboardRepresentations == representations)
+    }
+
     @Test("capturing duplicate image data refreshes one image item")
     func duplicateImageDataRefreshesExistingItem() {
         let imageData = Data([0x89, 0x50, 0x4E, 0x47])
@@ -57,6 +75,47 @@ struct ClipboardLibraryTests {
         #expect(loaded.first?.imageData == imageData)
         #expect(loaded.first?.imagePasteboardType == "public.tiff")
         #expect(loaded.first?.kind == .image)
+    }
+
+    @Test("snapshot store preserves rich pasteboard representations")
+    func snapshotStorePreservesPasteboardRepresentations() {
+        let fileURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("json")
+        let representations = [
+            "public.utf8-plain-text": Data("https://example.com".utf8),
+            "public.url": Data("https://example.com".utf8)
+        ]
+        let store = LibrarySnapshotStore(fileURL: fileURL)
+        let item = ClipItem(
+            content: "https://example.com",
+            kind: .link,
+            pasteboardRepresentations: representations
+        )
+
+        store.save([item])
+
+        let reloaded = LibrarySnapshotStore(fileURL: fileURL)
+        #expect(reloaded.load().first?.pasteboardRepresentations == representations)
+    }
+
+    @Test("snapshot store imports the previous JSON snapshot format")
+    func snapshotStoreImportsLegacyJSON() throws {
+        let fileURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("json")
+        let legacyItem = ClipItem(content: "Imported note", source: "Notes")
+        try JSONEncoder().encode([legacyItem]).write(to: fileURL)
+
+        let store = LibrarySnapshotStore(fileURL: fileURL)
+
+        #expect(store.load().map(\.content) == ["Imported note"])
+    }
+
+    @Test("file URLs are represented as file clips")
+    func fileURLKindIsDistinctFromLinks() {
+        #expect(ClipItem.detectKind(for: "file:///Users/example/Design.sketch") == .file)
+        #expect(ClipItem.detectKind(for: "https://example.com") == .link)
     }
 
     @Test("image preview is available only for image items with data")

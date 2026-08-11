@@ -35,7 +35,13 @@ public final class ClipboardLibrary {
         self.now = now
     }
 
-    public func capture(text: String, source: String = "Clipboard", sourceBundleIdentifier: String? = nil) {
+    public func capture(
+        text: String,
+        source: String = "Clipboard",
+        sourceBundleIdentifier: String? = nil,
+        kind: ClipKind? = nil,
+        pasteboardRepresentations: [String: Data] = [:]
+    ) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
@@ -43,6 +49,10 @@ public final class ClipboardLibrary {
             items[index].updatedAt = now()
             items[index].source = source
             items[index].sourceBundleIdentifier = sourceBundleIdentifier
+            items[index].kind = kind ?? items[index].kind
+            if !pasteboardRepresentations.isEmpty {
+                items[index].pasteboardRepresentations = pasteboardRepresentations
+            }
             sort()
             return
         }
@@ -52,6 +62,8 @@ public final class ClipboardLibrary {
                 content: text,
                 source: source,
                 sourceBundleIdentifier: sourceBundleIdentifier,
+                kind: kind,
+                pasteboardRepresentations: pasteboardRepresentations,
                 createdAt: now(),
                 updatedAt: now()
             ),
@@ -64,7 +76,8 @@ public final class ClipboardLibrary {
         data: Data,
         pasteboardType: String,
         source: String = "Clipboard",
-        sourceBundleIdentifier: String? = nil
+        sourceBundleIdentifier: String? = nil,
+        pasteboardRepresentations: [String: Data] = [:]
     ) {
         guard !data.isEmpty else { return }
 
@@ -73,6 +86,9 @@ public final class ClipboardLibrary {
             items[index].source = source
             items[index].sourceBundleIdentifier = sourceBundleIdentifier
             items[index].imagePasteboardType = pasteboardType
+            if !pasteboardRepresentations.isEmpty {
+                items[index].pasteboardRepresentations = pasteboardRepresentations
+            }
             sort()
             return
         }
@@ -85,6 +101,7 @@ public final class ClipboardLibrary {
                 kind: .image,
                 imageData: data,
                 imagePasteboardType: pasteboardType,
+                pasteboardRepresentations: pasteboardRepresentations,
                 createdAt: now(),
                 updatedAt: now()
             ),
@@ -99,6 +116,7 @@ public final class ClipboardLibrary {
         items[index].kind = ClipItem.detectKind(for: content)
         items[index].imageData = nil
         items[index].imagePasteboardType = nil
+        items[index].pasteboardRepresentations = [:]
         items[index].updatedAt = now()
         sort()
     }
@@ -107,6 +125,9 @@ public final class ClipboardLibrary {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, let index = items.firstIndex(where: { $0.id == item.id }) else { return }
         items[index].content = trimmed
+        if items[index].kind != .image {
+            items[index].pasteboardRepresentations = [:]
+        }
         items[index].updatedAt = now()
         sort()
     }

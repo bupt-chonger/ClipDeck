@@ -65,12 +65,7 @@ struct ContentView: View {
     }
 
     private func copy(_ item: ClipItem) {
-        if PasteboardImageTransfer.write(item, to: .general) {
-            return
-        }
-
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(item.content, forType: .string)
+        PasteboardImageTransfer.write(item, to: .general)
     }
 
     private func delete(_ item: ClipItem) {

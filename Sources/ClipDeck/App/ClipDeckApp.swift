@@ -30,7 +30,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .first!
             .appending(path: "ClipDeck")
             .appending(path: "library.json")
-        let store = LibrarySnapshotStore(fileURL: supportURL)
+        let cloudKitContainerIdentifier = Bundle.main.object(
+            forInfoDictionaryKey: "CloudKitContainerIdentifier"
+        ) as? String
+        let store = LibrarySnapshotStore(
+            fileURL: supportURL,
+            cloudKitContainerIdentifier: cloudKitContainerIdentifier
+        )
         let snapshot = store.loadSnapshot()
         let library = ClipboardLibrary(
             seed: store.hasSnapshot ? snapshot.items : ClipboardLibrary.demo().items,

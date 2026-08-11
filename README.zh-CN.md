@@ -10,6 +10,7 @@ ClipDeck 是一个面向 macOS 的剪贴板工具。它以贴合屏幕底部的�
 
 - 全局快捷键呼出或隐藏底部剪贴板面板
 - 自动保存文本和图片剪贴板历史
+- 按类型保存富文本、URL、文件 URL 和图片的原始 pasteboard 表示
 - 图片预览，以及图片剪贴板内容的复制/粘贴恢复
 - 根据内容、类型、来源 App、分组名称搜索条目
 - 自定义分组，支持颜色、重命名、删除和条目归类
@@ -18,7 +19,8 @@ ClipDeck 是一个面向 macOS 的剪贴板工具。它以贴合屏幕底部的�
 - `Command-C` 复制选中条目
 - 再次点击或双击条目可粘贴到之前聚焦的 App
 - 支持删除全部历史记录，或删除指定来源 App 的记录
-- 本地存储，不上传剪贴板内容
+- 使用 Core Data 的本地存储，并兼容旧 JSON 快照导入
+- 配置 iCloud 容器后可选启用 CloudKit 持久化同步
 
 ## 隐私过滤
 
@@ -70,11 +72,11 @@ swift test
 
 ClipDeck 可能会请求 macOS 辅助功能权限。该权限用于在选择剪贴板条目后，将焦点恢复到之前的应用，并发送粘贴快捷键，从而实现“直接粘贴到当前位置”。
 
-剪贴板采集、本地历史记录和搜索不依赖网络访问。
+剪贴板采集、本地历史记录和搜索不依赖网络访问。只有在 App 配置真实的 iCloud 容器标识和对应 entitlement 后，才会启用 CloudKit。
 
 ## 数据存储
 
-ClipDeck 将历史记录保存在当前用户的 Application Support 目录中，通过 `LibrarySnapshotStore` 读写本地 JSON 快照。
+ClipDeck 将历史记录保存在当前用户的 Application Support 目录中，通过 `LibrarySnapshotStore` 使用 Core Data/SQLite 存储。没有 Core Data 快照时，会自动尝试导入已有 JSON 快照。对于可用的富文本、URL、文件 URL 和图片数据，系统会保留原始 pasteboard 表示以便恢复。
 
 如果你经常复制密码、密钥、验证码、个人信息、截图或公司内部资料，建议开启隐私过滤，并定期清理历史记录。
 

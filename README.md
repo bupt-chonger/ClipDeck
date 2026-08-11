@@ -10,6 +10,7 @@ It is built with SwiftUI and AppKit, runs as a bottom-attached floating panel, a
 
 - Global shortcut to show or hide the clipboard shelf
 - Clipboard history for text and images
+- Typed pasteboard capture for rich text, URLs, file URLs, and image representations
 - Image preview and image pasteboard restore
 - Search by clip content, type, source app, or group name
 - Custom groups with colors, rename, delete, and clip assignment
@@ -18,7 +19,8 @@ It is built with SwiftUI and AppKit, runs as a bottom-attached floating panel, a
 - Copy selected clips with `Command-C`
 - Paste selected clips directly back into the previously focused app
 - Delete all records, or remove records from a specific source app
-- Local-only persistence
+- Local Core Data persistence with legacy JSON import
+- Optional CloudKit-backed persistence when the app is configured with an iCloud container
 
 ## Privacy Filters
 
@@ -70,11 +72,11 @@ Build and verify that the app launches:
 
 ClipDeck may request macOS Accessibility permission. This permission is used to restore focus to the previously active app and send the paste shortcut after you choose a clip, enabling direct paste into the current insertion point.
 
-Clipboard collection, local history, and search do not require network access.
+Clipboard collection, local history, and search do not require network access. CloudKit remains disabled unless a real container identifier and matching iCloud entitlements are configured in the app bundle.
 
 ## Data Storage
 
-ClipDeck stores clipboard history in the current user's Application Support directory through `LibrarySnapshotStore`, using a local JSON snapshot.
+ClipDeck stores clipboard history in the current user's Application Support directory through `LibrarySnapshotStore`, using Core Data/SQLite. Existing JSON snapshots are imported automatically when no Core Data snapshot exists. Raw pasteboard representations are retained so rich text, URLs, file URLs, and image data can be restored when available.
 
 If you frequently copy passwords, keys, verification codes, personal information, screenshots, or confidential documents, enable privacy filters and clear history regularly.
 

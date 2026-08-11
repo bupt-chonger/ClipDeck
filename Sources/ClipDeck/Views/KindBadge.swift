@@ -22,6 +22,7 @@ struct KindBadge: View {
         switch kind {
         case .text: "text.alignleft"
         case .link: "link"
+        case .file: "doc"
         case .image: "photo"
         case .code: "chevron.left.forwardslash.chevron.right"
         case .color: "paintpalette"
@@ -32,6 +33,7 @@ struct KindBadge: View {
         switch kind {
         case .text: .secondary
         case .link: AppPalette.teal
+        case .file: AppPalette.indigo
         case .image: AppPalette.indigo
         case .code: AppPalette.amber
         case .color: AppPalette.mint

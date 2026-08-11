@@ -690,18 +690,12 @@ struct FloatingClipboardView: View {
     }
 
     private func pastePlainText(_ item: ClipItem) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(item.content, forType: .string)
+        PasteboardImageTransfer.writePlainText(item.content, to: .general)
         pasteIntoTargetApplication()
     }
 
     private func writeToPasteboard(_ item: ClipItem) {
-        if PasteboardImageTransfer.write(item, to: .general) {
-            return
-        }
-
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(item.content, forType: .string)
+        PasteboardImageTransfer.write(item, to: .general)
     }
 
     private func quickLook(_ item: ClipItem) {
@@ -1087,6 +1081,7 @@ private struct ShelfClipCard: View {
         switch item.kind {
         case .text: Color(red: 0.02, green: 0.53, blue: 0.96)
         case .link: AppPalette.mint
+        case .file: AppPalette.indigo
         case .image: Color(red: 1.0, green: 0.20, blue: 0.24)
         case .code: Color(red: 0.96, green: 0.68, blue: 0.00)
         case .color: Color(red: 0.62, green: 0.32, blue: 0.95)

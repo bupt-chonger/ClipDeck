@@ -8,6 +8,11 @@ public struct ClipItem: Identifiable, Codable, Hashable, Sendable {
     public var kind: ClipKind
     public var imageData: Data?
     public var imagePasteboardType: String?
+    /// Raw pasteboard representations keyed by their UTI.
+    ///
+    /// Keeping the original representations allows rich text, URLs, file URLs,
+    /// and image data to be restored without reducing every item to a string.
+    public var pasteboardRepresentations: [String: Data]
     public var pinboardID: String?
     public var tags: [String]
     public var createdAt: Date
@@ -21,6 +26,7 @@ public struct ClipItem: Identifiable, Codable, Hashable, Sendable {
         case kind
         case imageData
         case imagePasteboardType
+        case pasteboardRepresentations
         case pinboardID
         case tags
         case createdAt
@@ -35,6 +41,7 @@ public struct ClipItem: Identifiable, Codable, Hashable, Sendable {
         kind: ClipKind? = nil,
         imageData: Data? = nil,
         imagePasteboardType: String? = nil,
+        pasteboardRepresentations: [String: Data] = [:],
         pinboardID: String? = nil,
         tags: [String] = [],
         createdAt: Date = Date(),
@@ -47,6 +54,7 @@ public struct ClipItem: Identifiable, Codable, Hashable, Sendable {
         self.kind = kind ?? (imageData == nil ? ClipItem.detectKind(for: content) : .image)
         self.imageData = imageData
         self.imagePasteboardType = imagePasteboardType
+        self.pasteboardRepresentations = pasteboardRepresentations
         self.pinboardID = pinboardID
         self.tags = tags
         self.createdAt = createdAt
@@ -62,6 +70,7 @@ public struct ClipItem: Identifiable, Codable, Hashable, Sendable {
         kind = try container.decode(ClipKind.self, forKey: .kind)
         imageData = try container.decodeIfPresent(Data.self, forKey: .imageData)
         imagePasteboardType = try container.decodeIfPresent(String.self, forKey: .imagePasteboardType)
+        pasteboardRepresentations = try container.decodeIfPresent([String: Data].self, forKey: .pasteboardRepresentations) ?? [:]
         pinboardID = try container.decodeIfPresent(String.self, forKey: .pinboardID)
         tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
         createdAt = try container.decode(Date.self, forKey: .createdAt)
@@ -88,6 +97,9 @@ public struct ClipItem: Identifiable, Codable, Hashable, Sendable {
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
             return .link
+        }
+        if trimmed.hasPrefix("file://") {
+            return .file
         }
         if trimmed.range(of: #"^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$"#, options: .regularExpression) != nil {
             return .color
