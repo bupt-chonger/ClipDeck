@@ -46,7 +46,7 @@ struct ContentView: View {
                     EmptyStateView()
                 }
             }
-            .background(AppPalette.canvas)
+            .background(.thinMaterial)
         }
         .navigationTitle("ClipDeck")
         .task {

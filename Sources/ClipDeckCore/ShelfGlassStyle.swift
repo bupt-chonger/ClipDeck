@@ -6,14 +6,14 @@ public enum ShelfGlassStyle {
     public static let panelStrokeOpacity: CGFloat = 0.16
     public static let searchFieldTintOpacity: CGFloat = 0.025
     public static let selectedFilterTintOpacity: CGFloat = 0.032
-    public static let cardBodyTintOpacity: CGFloat = 0.14
-    public static let cardBodyHighlightOpacity: CGFloat = 0.12
+    public static let cardBodyTintOpacity: CGFloat = 0.10
+    public static let cardBodyHighlightOpacity: CGFloat = 0.08
     public static let cardHeaderTintOpacity: CGFloat = 0.66
     public static let cardHeaderHighlightOpacity: CGFloat = 0.18
     public static let cardStrokeOpacity: CGFloat = 0.18
     public static let selectedCardStrokeOpacity: CGFloat = 0.78
-    public static let cardShadowOpacity: CGFloat = 0.10
-    public static let selectedCardShadowOpacity: CGFloat = 0.18
+    public static let cardShadowOpacity: CGFloat = 0.04
+    public static let selectedCardShadowOpacity: CGFloat = 0.08
 }
 
 public enum ShelfToolbarAnimationStyle {

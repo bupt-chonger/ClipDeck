@@ -52,14 +52,10 @@ struct ClipCardView: View {
         }
         .padding(16)
         .frame(width: 238, height: 196)
-        .background(cardBackground, in: RoundedRectangle(cornerRadius: 8))
+        .clipDeckGlass(in: RoundedRectangle(cornerRadius: 12, style: .continuous), layer: .card)
         .overlay {
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(isSelected ? AppPalette.teal : Color.primary.opacity(0.08), lineWidth: isSelected ? 2 : 1)
         }
-    }
-
-    private var cardBackground: some ShapeStyle {
-        isSelected ? AnyShapeStyle(.regularMaterial) : AnyShapeStyle(.thinMaterial)
     }
 }

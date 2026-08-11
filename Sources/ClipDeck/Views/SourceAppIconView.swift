@@ -14,15 +14,10 @@ struct SourceAppIconView: View {
             .aspectRatio(contentMode: .fit)
             .frame(width: iconSize, height: iconSize)
             .padding(padding)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-            .background(
-                Color.white.opacity(ShelfGlassStyle.cardBodyHighlightOpacity),
-                in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .clipDeckGlass(
+                in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous),
+                layer: .control
             )
-            .overlay {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(.white.opacity(ShelfGlassStyle.cardStrokeOpacity), lineWidth: 1)
-            }
             .help(item.source)
     }
 

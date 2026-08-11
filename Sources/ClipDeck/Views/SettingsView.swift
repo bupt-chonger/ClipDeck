@@ -44,7 +44,7 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(minWidth: 760, idealWidth: 800, minHeight: 500, idealHeight: 540)
-        .background(.ultraThinMaterial)
+        .background(.regularMaterial)
         .onAppear {
             policy = environment.loadCapturePolicy()
         }
@@ -72,7 +72,7 @@ struct SettingsView: View {
             .scrollContentBackground(.hidden)
         }
         .frame(width: 220)
-        .background(.regularMaterial)
+        .background(.thickMaterial)
     }
 
     @ViewBuilder
@@ -97,7 +97,7 @@ struct SettingsView: View {
             .formStyle(.grouped)
             .scrollContentBackground(.hidden)
         }
-        .background(.ultraThinMaterial)
+        .background(.thinMaterial)
     }
 
     private func detailHeader(for section: SettingsSection) -> some View {

@@ -40,8 +40,9 @@ struct InspectorView: View {
                 ImagePreviewView(item: item, contentMode: .fit)
                     .frame(maxWidth: .infinity, minHeight: 220, maxHeight: 360)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .clipDeckGlass(in: RoundedRectangle(cornerRadius: 10, style: .continuous), layer: .card)
                     .overlay {
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .stroke(Color.primary.opacity(0.08))
                     }
             } else {
@@ -49,9 +50,9 @@ struct InspectorView: View {
                     .font(.system(.body, design: item.kind == .code ? .monospaced : .default))
                     .scrollContentBackground(.hidden)
                     .padding(10)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
+                    .clipDeckGlass(in: RoundedRectangle(cornerRadius: 10, style: .continuous), layer: .card)
                     .overlay {
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .stroke(Color.primary.opacity(0.08))
                     }
             }

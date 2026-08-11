@@ -22,6 +22,7 @@ struct FloatingClipboardView: View {
     @FocusState private var isSearchFocused: Bool
     @FocusState private var isPinboardNameFocused: Bool
     @Namespace private var toolbarSelectionNamespace
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var language: AppLanguagePreference {
         AppLanguagePreference(rawValue: languageRawValue) ?? .simplifiedChinese
@@ -44,11 +45,23 @@ struct FloatingClipboardView: View {
     }
 
     private var toolbarMorphAnimation: Animation {
-        .interactiveSpring(
+        if reduceMotion {
+            return .easeOut(duration: 0.12)
+        }
+
+        return .interactiveSpring(
             response: ShelfToolbarAnimationStyle.response,
             dampingFraction: ShelfToolbarAnimationStyle.dampingFraction,
             blendDuration: ShelfToolbarAnimationStyle.blendDuration
         )
+    }
+
+    private var presentationAnimation: Animation {
+        if reduceMotion {
+            return .easeOut(duration: 0.12)
+        }
+
+        return .interactiveSpring(response: 0.34, dampingFraction: 0.96, blendDuration: 0.10)
     }
 
     private var pinboardAssignmentAnimation: Animation {
@@ -59,12 +72,19 @@ struct FloatingClipboardView: View {
         )
     }
 
+    private var panelShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: ShelfWindowChrome.cornerRadius, style: .continuous)
+    }
+
     var body: some View {
         GeometryReader { proxy in
             shelfContent
                 .offset(y: animationState.isPresented ? 0 : proxy.size.height)
                 .opacity(animationState.isPresented ? 1 : 0)
                 .frame(width: proxy.size.width, height: proxy.size.height, alignment: .bottom)
+                .clipDeckGlass(in: panelShape, layer: .panel)
+                .clipShape(panelShape)
+                .animation(presentationAnimation, value: animationState.isPresented)
         }
         .background(Color.clear)
         .clipped()
@@ -89,51 +109,53 @@ struct FloatingClipboardView: View {
     }
 
     private var shelfContent: some View {
-        VStack(spacing: 14) {
-            shelfToolbar
+        ClipDeckGlassContainer(spacing: 14) {
+            VStack(spacing: 14) {
+                shelfToolbar
 
-            ScrollViewReader { scrollProxy in
-                ScrollView(.horizontal) {
-                    LazyHStack(spacing: ShelfCardLayout.cardSpacing) {
-                        ForEach(items) { item in
-                            ShelfClipCard(
-                                item: item,
-                                isSelected: selectedItemID == item.id,
-                                select: { select(item) },
-                                paste: { paste(item) },
-                                pastePlainText: { pastePlainText(item) },
-                                copy: { copy(item) },
-                                edit: { edit(item) },
-                                rename: { rename(item) },
-                                delete: { delete(item) },
-                                pinboards: library.pinboards,
-                                pinboardName: library.pinboardName(for: item),
-                                saveToPinboard: { pinboard in save(item, to: pinboard) },
-                                createPinboard: { showPinboardCreator(attaching: item) },
-                                quickLook: { quickLook(item) },
-                                share: { share(item) },
-                                strings: strings
-                            )
-                            .id(item.id)
+                ScrollViewReader { scrollProxy in
+                    ScrollView(.horizontal) {
+                        LazyHStack(spacing: ShelfCardLayout.cardSpacing) {
+                            ForEach(items) { item in
+                                ShelfClipCard(
+                                    item: item,
+                                    isSelected: selectedItemID == item.id,
+                                    select: { select(item) },
+                                    paste: { paste(item) },
+                                    pastePlainText: { pastePlainText(item) },
+                                    copy: { copy(item) },
+                                    edit: { edit(item) },
+                                    rename: { rename(item) },
+                                    delete: { delete(item) },
+                                    pinboards: library.pinboards,
+                                    pinboardName: library.pinboardName(for: item),
+                                    saveToPinboard: { pinboard in save(item, to: pinboard) },
+                                    createPinboard: { showPinboardCreator(attaching: item) },
+                                    quickLook: { quickLook(item) },
+                                    share: { share(item) },
+                                    strings: strings
+                                )
+                                .id(item.id)
+                            }
                         }
-                    }
-                    .padding(.horizontal, ShelfCardLayout.horizontalContentInset)
-                    .padding(.bottom, 22)
-                    .transition(
-                        .asymmetric(
-                            insertion: .opacity.combined(with: .offset(y: ShelfToolbarAnimationStyle.contentSwitchOffset)),
-                            removal: .opacity
+                        .padding(.horizontal, ShelfCardLayout.horizontalContentInset)
+                        .padding(.bottom, 22)
+                        .transition(
+                            .asymmetric(
+                                insertion: .opacity.combined(with: .offset(y: ShelfToolbarAnimationStyle.contentSwitchOffset)),
+                                removal: .opacity
+                            )
                         )
-                    )
-                    .id(selectedFilter)
-                }
-                .scrollIndicators(.hidden)
-                .animation(toolbarMorphAnimation, value: selectedFilter)
-                .onChange(of: selectedItemID) { _, itemID in
-                    scrollToSelectedItem(itemID, using: scrollProxy)
-                }
-                .onChange(of: items) { _, _ in
-                    scrollToSelectedItem(selectedItemID, using: scrollProxy)
+                        .id(selectedFilter)
+                    }
+                    .scrollIndicators(.hidden)
+                    .animation(toolbarMorphAnimation, value: selectedFilter)
+                    .onChange(of: selectedItemID) { _, itemID in
+                        scrollToSelectedItem(itemID, using: scrollProxy)
+                    }
+                    .onChange(of: items) { _, _ in
+                        scrollToSelectedItem(selectedItemID, using: scrollProxy)
+                    }
                 }
             }
         }
@@ -146,38 +168,6 @@ struct FloatingClipboardView: View {
                 return
             }
             selectedItemID = nil
-        }
-        .background {
-            UnevenRoundedRectangle(
-                topLeadingRadius: ShelfWindowChrome.cornerRadius,
-                topTrailingRadius: ShelfWindowChrome.cornerRadius
-            )
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    UnevenRoundedRectangle(
-                        topLeadingRadius: ShelfWindowChrome.cornerRadius,
-                        topTrailingRadius: ShelfWindowChrome.cornerRadius
-                    )
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    .white.opacity(ShelfGlassStyle.panelHighlightOpacity),
-                                    .white.opacity(ShelfGlassStyle.panelMidHighlightOpacity),
-                                    .clear
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .allowsHitTesting(false)
-                }
-                .overlay {
-                    UnevenRoundedRectangle(
-                        topLeadingRadius: ShelfWindowChrome.cornerRadius,
-                        topTrailingRadius: ShelfWindowChrome.cornerRadius
-                    )
-                        .stroke(Color.white.opacity(ShelfGlassStyle.panelStrokeOpacity), lineWidth: 1)
-                }
         }
     }
 
@@ -213,30 +203,32 @@ struct FloatingClipboardView: View {
                 .buttonStyle(.plain)
                 .help(strings.search)
 
-                TextField(strings.searchClips, text: $query)
-                    .textFieldStyle(.plain)
-                    .font(.callout.weight(.medium))
-                    .foregroundStyle(.primary)
-                    .focused($isSearchFocused)
-                    .frame(width: isSearching ? 180 : 1, height: 28)
-                    .opacity(isSearching ? 1 : ShelfToolbarAnimationStyle.collapsedOpacity)
-                    .scaleEffect(x: isSearching ? 1 : ShelfToolbarAnimationStyle.collapsedScale, y: 1, anchor: .leading)
-                    .padding(.horizontal, isSearching ? 10 : 0)
-                    .background(isSearching ? AnyShapeStyle(.ultraThinMaterial) : AnyShapeStyle(.clear), in: Capsule())
-                    .background(isSearching ? AnyShapeStyle(.primary.opacity(ShelfGlassStyle.searchFieldTintOpacity)) : AnyShapeStyle(.clear), in: Capsule())
-                    .overlay {
-                        Capsule()
-                            .stroke(isSearching ? Color.primary.opacity(0.08) : .clear, lineWidth: 1)
-                    }
-                    .animation(toolbarMorphAnimation, value: isSearching)
-                    .onChange(of: query) { _, newValue in
-                        if !newValue.isEmpty {
-                            isSearchVisible = true
+                if isSearching {
+                    TextField(strings.searchClips, text: $query)
+                        .textFieldStyle(.plain)
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(.primary.opacity(0.96))
+                        .tint(.accentColor)
+                        .focused($isSearchFocused)
+                        .frame(width: 180, height: 28)
+                        .padding(.horizontal, 10)
+                        .clipDeckGlass(in: Capsule(), layer: .control)
+                        .clipShape(Capsule())
+                        .transition(
+                            .asymmetric(
+                                insertion: .scale(scale: 0.86, anchor: .leading).combined(with: .opacity),
+                                removal: .opacity
+                            )
+                        )
+                        .onChange(of: query) { _, newValue in
+                            if !newValue.isEmpty {
+                                isSearchVisible = true
+                            }
                         }
-                    }
-                    .onExitCommand {
-                        handleEscape()
-                    }
+                        .onExitCommand {
+                            handleEscape()
+                        }
+                }
 
                 if !query.isEmpty {
                     Button {
@@ -282,82 +274,83 @@ struct FloatingClipboardView: View {
         .frame(height: 36)
     }
 
+    @ViewBuilder
     private var inlinePinboardCreator: some View {
-        HStack(spacing: ShelfPinboardCreatorLayout.sectionSpacing) {
-            HStack(spacing: ShelfPinboardCreatorLayout.colorChoiceSpacing) {
-                ForEach(ShelfPinboardCreationDraft.colorOptions) { option in
-                    Button {
-                        pinboardDraft.colorHex = option.hex
-                        focusPinboardNameField()
-                    } label: {
-                        Circle()
-                            .fill(Color(hex: option.hex))
-                            .frame(width: ShelfPinboardCreatorLayout.colorChoiceSize, height: ShelfPinboardCreatorLayout.colorChoiceSize)
-                            .overlay {
-                                Circle()
-                                    .stroke(pinboardDraft.colorHex == option.hex ? Color.primary.opacity(0.68) : Color.white.opacity(0.22), lineWidth: pinboardDraft.colorHex == option.hex ? 2 : 1)
-                            }
-                            .contentShape(Circle())
+        if isPinboardCreatorVisible {
+            HStack(spacing: ShelfPinboardCreatorLayout.sectionSpacing) {
+                HStack(spacing: ShelfPinboardCreatorLayout.colorChoiceSpacing) {
+                    ForEach(ShelfPinboardCreationDraft.colorOptions) { option in
+                        Button {
+                            pinboardDraft.colorHex = option.hex
+                            focusPinboardNameField()
+                        } label: {
+                            Circle()
+                                .fill(Color(hex: option.hex))
+                                .frame(width: ShelfPinboardCreatorLayout.colorChoiceSize, height: ShelfPinboardCreatorLayout.colorChoiceSize)
+                                .overlay {
+                                    Circle()
+                                        .stroke(pinboardDraft.colorHex == option.hex ? Color.primary.opacity(0.68) : Color.white.opacity(0.22), lineWidth: pinboardDraft.colorHex == option.hex ? 2 : 1)
+                                }
+                                .contentShape(Circle())
+                        }
+                        .buttonStyle(.plain)
+                        .help(option.name)
                     }
-                    .buttonStyle(.plain)
-                    .help(option.name)
                 }
-            }
 
-            TextField(strings.pinboardPlaceholder, text: $pinboardDraft.name)
-                .textFieldStyle(.plain)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.primary)
-                .focused($isPinboardNameFocused)
-                .frame(width: ShelfPinboardCreatorLayout.textFieldWidth, height: 24)
-                .onSubmit {
+                TextField(strings.pinboardPlaceholder, text: $pinboardDraft.name)
+                    .textFieldStyle(.plain)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.primary)
+                    .focused($isPinboardNameFocused)
+                    .frame(width: ShelfPinboardCreatorLayout.textFieldWidth, height: 24)
+                    .onSubmit {
+                        commitPinboardCreator()
+                    }
+                    .onExitCommand {
+                        cancelPinboardEditor()
+                    }
+
+                Button {
                     commitPinboardCreator()
+                } label: {
+                    Image(systemName: "checkmark")
+                        .font(.caption.weight(.bold))
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(pinboardDraft.canCreate ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
+                        .frame(width: ShelfPinboardCreatorLayout.confirmButtonWidth, height: 22)
                 }
-                .onExitCommand {
+                .buttonStyle(.plain)
+                .disabled(!pinboardDraft.canCreate)
+                .help(editingPinboardID == nil ? strings.createPinboard : strings.renamePinboard)
+
+                Button {
                     cancelPinboardEditor()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.caption.weight(.semibold))
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(.secondary)
+                        .frame(width: ShelfPinboardCreatorLayout.cancelButtonWidth, height: 22)
                 }
-
-            Button {
-                commitPinboardCreator()
-            } label: {
-                Image(systemName: "checkmark")
-                    .font(.caption.weight(.bold))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(pinboardDraft.canCreate ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
-                    .frame(width: ShelfPinboardCreatorLayout.confirmButtonWidth, height: 22)
+                .buttonStyle(.plain)
+                .help(strings.cancel)
             }
-            .buttonStyle(.plain)
-            .disabled(!pinboardDraft.canCreate)
-            .help(editingPinboardID == nil ? strings.createPinboard : strings.renamePinboard)
-
-            Button {
-                cancelPinboardEditor()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.caption.weight(.semibold))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.secondary)
-                    .frame(width: ShelfPinboardCreatorLayout.cancelButtonWidth, height: 22)
-            }
-            .buttonStyle(.plain)
-            .help(strings.cancel)
+            .frame(width: ShelfPinboardCreatorLayout.expandedWidth, height: ShelfPinboardCreatorLayout.height)
+            .padding(.leading, ShelfPinboardCreatorLayout.leadingPadding)
+            .padding(.trailing, ShelfPinboardCreatorLayout.trailingPadding)
+            .padding(.vertical, ShelfPinboardCreatorLayout.verticalPadding)
+            .clipDeckGlass(in: Capsule(), layer: .control)
+            .clipShape(Capsule())
+            .fixedSize(horizontal: true, vertical: false)
+            .transition(
+                .asymmetric(
+                    insertion: .scale(scale: 0.86, anchor: .leading).combined(with: .opacity),
+                    removal: .opacity
+                )
+            )
+            .animation(toolbarMorphAnimation, value: isPinboardCreatorVisible)
         }
-        .frame(width: isPinboardCreatorVisible ? ShelfPinboardCreatorLayout.expandedWidth : ShelfPinboardCreatorLayout.collapsedWidth, height: ShelfPinboardCreatorLayout.height)
-        .opacity(isPinboardCreatorVisible ? 1 : ShelfToolbarAnimationStyle.collapsedOpacity)
-        .scaleEffect(x: isPinboardCreatorVisible ? 1 : ShelfToolbarAnimationStyle.collapsedScale, y: 1, anchor: .leading)
-        .padding(.leading, isPinboardCreatorVisible ? ShelfPinboardCreatorLayout.leadingPadding : 0)
-        .padding(.trailing, isPinboardCreatorVisible ? ShelfPinboardCreatorLayout.trailingPadding : 0)
-        .padding(.vertical, isPinboardCreatorVisible ? ShelfPinboardCreatorLayout.verticalPadding : 0)
-        .background(isPinboardCreatorVisible ? AnyShapeStyle(.ultraThinMaterial) : AnyShapeStyle(.clear), in: Capsule())
-        .background(isPinboardCreatorVisible ? AnyShapeStyle(Color.primary.opacity(ShelfGlassStyle.searchFieldTintOpacity)) : AnyShapeStyle(.clear), in: Capsule())
-        .overlay {
-            Capsule()
-                .stroke(isPinboardCreatorVisible ? Color.primary.opacity(0.08) : .clear, lineWidth: 1)
-        }
-        .clipped()
-        .fixedSize(horizontal: true, vertical: false)
-        .allowsHitTesting(isPinboardCreatorVisible)
-        .animation(toolbarMorphAnimation, value: isPinboardCreatorVisible)
     }
 
     private func toolbarFilterButton(_ filter: ClipboardFilter) -> some View {
@@ -387,20 +380,16 @@ struct FloatingClipboardView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.9)
             }
-            .foregroundStyle(isSelected ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+            .foregroundStyle(isSelected ? AnyShapeStyle(.primary) : AnyShapeStyle(.primary.opacity(0.84)))
             .padding(.horizontal, isSelected ? 10 : 0)
             .padding(.vertical, isSelected ? 5 : 0)
             .background {
                 if isSelected {
                     Capsule()
-                        .fill(.ultraThinMaterial)
+                        .fill(Color.primary.opacity(0.14))
                         .overlay {
                             Capsule()
-                                .fill(Color.primary.opacity(ShelfGlassStyle.selectedFilterTintOpacity))
-                        }
-                        .overlay {
-                            Capsule()
-                                .stroke(Color.primary.opacity(0.075), lineWidth: 1)
+                                .stroke(Color.primary.opacity(0.12), lineWidth: 1)
                         }
                         .matchedGeometryEffect(id: "selected-toolbar-filter", in: toolbarSelectionNamespace)
                 }
@@ -840,6 +829,7 @@ private struct ShelfClipCard: View {
         }
         .frame(width: ShelfCardLayout.cardWidth, height: ShelfCardLayout.cardHeight)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipDeckGlass(in: RoundedRectangle(cornerRadius: 16, style: .continuous), layer: .card)
         .overlay {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
             .strokeBorder(
@@ -847,7 +837,11 @@ private struct ShelfClipCard: View {
                     lineWidth: isSelected ? 2.5 : 1
                 )
         }
-        .shadow(color: .black.opacity(isSelected ? ShelfGlassStyle.selectedCardShadowOpacity : ShelfGlassStyle.cardShadowOpacity), radius: isSelected ? 22 : 14, y: isSelected ? 10 : 6)
+        .shadow(
+            color: .black.opacity(isSelected ? ShelfGlassStyle.selectedCardShadowOpacity : 0),
+            radius: isSelected ? 12 : 0,
+            y: isSelected ? 4 : 0
+        )
         .scaleEffect(isSelected ? 1.025 : 1)
         .animation(
             .interactiveSpring(
@@ -961,8 +955,7 @@ private struct ShelfClipCard: View {
         .frame(maxWidth: .infinity, alignment: .top)
         .background {
             ZStack {
-                Rectangle()
-                    .fill(.ultraThinMaterial)
+                Color.clear
                 headerColor.opacity(ShelfGlassStyle.cardHeaderTintOpacity)
                 LinearGradient(
                     colors: [.white.opacity(ShelfGlassStyle.cardHeaderHighlightOpacity), .clear],
@@ -987,12 +980,12 @@ private struct ShelfClipCard: View {
                         .minimumScaleFactor(0.9)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
-                        .background(.thinMaterial, in: Capsule())
+                        .background(Color.black.opacity(0.28), in: Capsule())
                         .overlay {
                             Capsule()
                                 .stroke(.white.opacity(0.20), lineWidth: 1)
                         }
-                    tagRow(foreground: .white, background: AnyShapeStyle(.thinMaterial))
+                    tagRow(foreground: .white, background: AnyShapeStyle(Color.black.opacity(0.24)))
                 }
                 .padding(.bottom, 10)
             } else {
@@ -1007,7 +1000,7 @@ private struct ShelfClipCard: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Spacer()
                     if !pinboardName.isEmpty {
-                        tagRow(foreground: .secondary, background: AnyShapeStyle(.thinMaterial))
+                        tagRow(foreground: .secondary, background: AnyShapeStyle(Color.primary.opacity(0.07)))
                             .padding(.bottom, 8)
                     }
                     HStack {
@@ -1030,10 +1023,7 @@ private struct ShelfClipCard: View {
         .clipped()
         .background {
             ZStack {
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-                Color(nsColor: .controlBackgroundColor)
-                    .opacity(ShelfGlassStyle.cardBodyTintOpacity)
+                Color.primary.opacity(ShelfGlassStyle.cardBodyTintOpacity * 0.35)
                 LinearGradient(
                     colors: [.white.opacity(ShelfGlassStyle.cardBodyHighlightOpacity), .clear],
                     startPoint: .top,

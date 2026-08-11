@@ -50,9 +50,7 @@ final class FloatingClipboardController {
         panel.orderFrontRegardless()
         panel.makeKey()
 
-        withAnimation(.easeOut(duration: 0.22)) {
-            animationState.isPresented = true
-        }
+        animationState.isPresented = true
     }
 
     func hide() {
@@ -71,9 +69,7 @@ final class FloatingClipboardController {
         guard panel.isVisible else { return }
         guard hideCompletions.beginHide(afterHide: completion) == .startHide else { return }
 
-        withAnimation(.easeIn(duration: ShelfPasteTiming.hideAnimationDuration)) {
-            animationState.isPresented = false
-        }
+        animationState.isPresented = false
 
         DispatchQueue.main.asyncAfter(deadline: .now() + ShelfPasteTiming.hideAnimationDuration) { [weak self] in
             Task { @MainActor in

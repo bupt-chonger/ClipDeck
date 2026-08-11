@@ -27,7 +27,7 @@ struct HeaderView: View {
             }
             .padding(.horizontal, 12)
             .frame(width: 300, height: 36)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+            .clipDeckGlass(in: RoundedRectangle(cornerRadius: 10, style: .continuous), layer: .control)
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 18)
