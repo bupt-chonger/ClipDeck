@@ -217,17 +217,37 @@ public final class LibrarySnapshotStore: @unchecked Sendable {
     private func upsertSourceApplications(_ items: [ClipItem], in context: NSManagedObjectContext) throws {
         let request = NSFetchRequest<NSManagedObject>(entityName: Self.applicationEntityName)
         let existing = try context.fetch(request)
-        let existingByID = Dictionary(uniqueKeysWithValues: existing.compactMap { object -> (String, NSManagedObject)? in
-            guard let id = object.value(forKey: "id") as? String else { return nil }
-            return (id, object)
-        })
+        var existingByID: [String: NSManagedObject] = [:]
+
+        for object in existing {
+            guard let id = object.value(forKey: "id") as? String else { continue }
+
+            guard let current = existingByID[id] else {
+                existingByID[id] = object
+                continue
+            }
+
+            let currentDate = current.value(forKey: "lastSeenAt") as? Date ?? .distantPast
+            let candidateDate = object.value(forKey: "lastSeenAt") as? Date ?? .distantPast
+            if candidateDate >= currentDate {
+                context.delete(current)
+                existingByID[id] = object
+            } else {
+                context.delete(object)
+            }
+        }
 
         for item in items {
             let id = item.sourceBundleIdentifier?.isEmpty == false
                 ? item.sourceBundleIdentifier!
                 : "name:\(item.source)"
-            let object = existingByID[id]
-                ?? NSEntityDescription.insertNewObject(forEntityName: Self.applicationEntityName, into: context)
+            let object: NSManagedObject
+            if let existingObject = existingByID[id] {
+                object = existingObject
+            } else {
+                object = NSEntityDescription.insertNewObject(forEntityName: Self.applicationEntityName, into: context)
+                existingByID[id] = object
+            }
             object.setValue(id, forKey: "id")
             object.setValue(item.source, forKey: "name")
             object.setValue(item.sourceBundleIdentifier, forKey: "bundleIdentifier")

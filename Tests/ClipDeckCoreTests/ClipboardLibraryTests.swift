@@ -99,6 +99,23 @@ struct ClipboardLibraryTests {
         #expect(reloaded.load().first?.pasteboardRepresentations == representations)
     }
 
+    @Test("snapshot store handles repeated source applications without crashing")
+    func snapshotStoreHandlesRepeatedSourceApplications() {
+        let fileURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("json")
+        let store = LibrarySnapshotStore(fileURL: fileURL)
+        let items = [
+            ClipItem(content: "First note", source: "Safari", sourceBundleIdentifier: "com.apple.Safari"),
+            ClipItem(content: "Second note", source: "Safari", sourceBundleIdentifier: "com.apple.Safari")
+        ]
+
+        store.save(items)
+        store.save(items)
+
+        #expect(store.load().count == 2)
+    }
+
     @Test("snapshot store imports the previous JSON snapshot format")
     func snapshotStoreImportsLegacyJSON() throws {
         let fileURL = FileManager.default.temporaryDirectory
