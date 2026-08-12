@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-MODE="${1:-run}"
 APP_NAME="ClipDeck"
 BUNDLE_ID="io.codex.ClipDeck"
 MIN_SYSTEM_VERSION="14.0"
+RELEASE_VERSION="${CLIPDECK_VERSION:-0.1.3}"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DIST_DIR="$ROOT_DIR/dist"
@@ -17,16 +17,24 @@ INFO_PLIST="$APP_CONTENTS/Info.plist"
 APP_ICON_NAME="AppIcon"
 APP_ICONSET="$APP_RESOURCES/$APP_ICON_NAME.iconset"
 APP_ICNS="$APP_RESOURCES/$APP_ICON_NAME.icns"
+ZIP_PATH="$DIST_DIR/${APP_NAME}-v${RELEASE_VERSION}-macos.zip"
+DMG_PATH="$DIST_DIR/${APP_NAME}-v${RELEASE_VERSION}-macos.dmg"
 SIGNING_IDENTITY="${CLIPDECK_SIGNING_IDENTITY:-}"
+STAGING_DIR="$(mktemp -d -t clipdeck-release)"
+
+cleanup() {
+  rm -rf "$STAGING_DIR"
+}
+trap cleanup EXIT
 
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
 
-swift build
-BUILD_BINARY="$(swift build --show-bin-path)/$APP_NAME"
+swift build -c release
+BUILD_BINARY="$(swift build -c release --show-bin-path)/$APP_NAME"
 
 rm -rf "$APP_BUNDLE"
-mkdir -p "$APP_MACOS"
-mkdir -p "$APP_RESOURCES"
+rm -f "$ZIP_PATH" "$DMG_PATH"
+mkdir -p "$APP_MACOS" "$APP_RESOURCES"
 cp "$BUILD_BINARY" "$APP_BINARY"
 chmod +x "$APP_BINARY"
 
@@ -49,6 +57,10 @@ cat >"$INFO_PLIST" <<PLIST
   <string>$APP_NAME</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>$RELEASE_VERSION</string>
+  <key>CFBundleVersion</key>
+  <string>$RELEASE_VERSION</string>
   <key>LSMinimumSystemVersion</key>
   <string>$MIN_SYSTEM_VERSION</string>
   <key>LSUIElement</key>
@@ -69,32 +81,10 @@ else
   /usr/bin/codesign --force --sign - "$APP_BUNDLE"
 fi
 
-open_app() {
-  /usr/bin/open -n "$APP_BUNDLE"
-}
+/usr/bin/codesign --verify --deep --strict "$APP_BUNDLE"
+/usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_BUNDLE" "$ZIP_PATH"
+/usr/bin/ditto "$APP_BUNDLE" "$STAGING_DIR/$APP_NAME.app"
+/usr/bin/hdiutil create -volname "$APP_NAME" -srcfolder "$STAGING_DIR" -ov -format UDZO "$DMG_PATH" >/dev/null
 
-case "$MODE" in
-  run)
-    open_app
-    ;;
-  --debug|debug)
-    lldb -- "$APP_BINARY"
-    ;;
-  --logs|logs)
-    open_app
-    /usr/bin/log stream --info --style compact --predicate "process == \"$APP_NAME\""
-    ;;
-  --telemetry|telemetry)
-    open_app
-    /usr/bin/log stream --info --style compact --predicate "subsystem == \"$BUNDLE_ID\""
-    ;;
-  --verify|verify)
-    open_app
-    sleep 1
-    pgrep -x "$APP_NAME" >/dev/null
-    ;;
-  *)
-    echo "usage: $0 [run|--debug|--logs|--telemetry|--verify]" >&2
-    exit 2
-    ;;
-esac
+echo "Created: $ZIP_PATH"
+echo "Created: $DMG_PATH"

@@ -852,6 +852,9 @@ private struct ShelfClipCard: View {
             value: isSelected
         )
         .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        // Keep double-click as a direct action. A single-tap-only state
+        // machine is not reliable because SwiftUI may coalesce the two taps
+        // while the selected-card animation and focus change are in flight.
         .onTapGesture(count: 2) {
             paste()
         }

@@ -39,6 +39,7 @@ struct AppStrings {
     var recordingShortcut: String { text(en: "Press new shortcut", zh: "按下新的快捷键") }
     var shortcutRecorderHelp: String { text(en: "Click, then press a shortcut that includes Command, Option, Control, or Shift.", zh: "点击后按下包含 Command、Option、Control 或 Shift 的快捷键") }
     var settings: String { text(en: "Settings", zh: "设置") }
+    var quit: String { text(en: "Quit ClipDeck", zh: "退出 ClipDeck") }
     var search: String { text(en: "Search", zh: "搜索") }
     var searchClips: String { text(en: "Search clips", zh: "搜索剪贴板") }
     var clearSearch: String { text(en: "Clear search", zh: "清除搜索") }

@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var policyStore: ClipboardCapturePolicyStore?
     private var retentionStore: ClipboardRetentionPreferenceStore?
     private var settingsWindowController: SettingsWindowController?
+    private var statusBarController: StatusBarController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -69,6 +70,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let settingsWindowController = SettingsWindowController(environment: ClipDeckEnvironment.shared)
         self.settingsWindowController = settingsWindowController
 
+        let statusBarController = StatusBarController(
+            floatingController: floatingController,
+            settingsWindowController: settingsWindowController
+        )
+        self.statusBarController = statusBarController
+
         ClipDeckEnvironment.shared.configure(
             library: library,
             store: store,
@@ -80,6 +87,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         hotKeyMonitor.start(shortcut: HotKeyPreferenceStore.load())
         floatingController.show()
+
+        // The SwiftUI Settings scene can restore its window when a menu-bar
+        // app is launched. ClipDeck owns settings through its AppKit window
+        // controller, so dismiss only that automatically restored scene on
+        // launch while keeping the explicit Settings actions available.
+        Task { @MainActor in
+            closeAutomaticallyRestoredSettingsWindow()
+            try? await Task.sleep(for: .milliseconds(120))
+            closeAutomaticallyRestoredSettingsWindow()
+        }
+    }
+
+    @MainActor
+    private func closeAutomaticallyRestoredSettingsWindow() {
+        NSApp.windows
+            .filter { $0.identifier?.rawValue == "com_apple_SwiftUI_Settings_window" }
+            .forEach { $0.close() }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

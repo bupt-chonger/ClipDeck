@@ -51,6 +51,13 @@ enum PasteboardImageTransfer {
 
     @discardableResult
     static func write(_ item: ClipItem, to pasteboard: NSPasteboard) -> Bool {
+        // Keep text insertion compatible with the 1.0.1 path. Some target
+        // editors prefer an archived URL/file/RTF representation over the
+        // insertion-point text when multiple UTIs are written at once.
+        guard item.kind == .image else {
+            return writePlainText(item.content, to: pasteboard)
+        }
+
         if !item.pasteboardRepresentations.isEmpty {
             pasteboard.clearContents()
             let pasteboardItem = NSPasteboardItem()

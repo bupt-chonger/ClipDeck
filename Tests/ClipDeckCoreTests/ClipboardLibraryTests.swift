@@ -307,6 +307,7 @@ struct ClipboardLibraryTests {
     @Test("paste shortcut waits until the shelf is hidden")
     func pasteShortcutWaitsUntilShelfIsHidden() {
         #expect(ShelfPasteTiming.shortcutDelay >= ShelfPasteTiming.hideAnimationDuration + ShelfPasteTiming.activationDelay)
+        #expect(ShelfPasteTiming.activationDelay >= 0.10)
     }
 
     @Test("opening the shelf checks accessibility without prompting")
